@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Proiect.Data;
 using Proiect.Models;
+using static System.Reflection.Metadata.BlobBuilder;
 
 namespace Proiect.Controllers
 {
@@ -19,9 +20,47 @@ namespace Proiect.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string sortOrder, string currentFilter, string searchString, int? pageNumber)
         {
-            return View(await _context.Foods.ToListAsync());
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["NameSortParm"] = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
+            ViewData["PriceSortParm"] = sortOrder == "Price" ? "price_desc" : "Price";
+
+            if (searchString != null)
+            {
+                pageNumber = 1;
+            }
+            else
+            {
+                searchString = currentFilter;
+            }
+
+            ViewData["CurrentFilter"] = searchString;
+
+            var foods = from f in _context.Foods
+                        select f;
+
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                foods = foods.Where(s => s.Name.Contains(searchString));
+            }
+
+            switch (sortOrder)
+            {
+                case "name_desc":
+                    foods = foods.OrderByDescending(f => f.Name);
+                    break;
+                case "Price":
+                    foods = foods.OrderBy(f => f.Price);
+                    break;
+                case "price_desc":
+                default:
+                    foods = foods.OrderBy(f => f.Name);
+                    break;
+            }
+
+            int pageSize = 2;
+            return View(await PaginatedList<Food>.CreateAsync(foods.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
 
         public async Task<IActionResult> Details(int? id)
@@ -32,6 +71,9 @@ namespace Proiect.Controllers
             }
 
             var food = await _context.Foods
+                .Include(s => s.Orders)
+                .ThenInclude(e => e.Client)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.ID == id);
             if (food == null)
             {
@@ -48,14 +90,22 @@ namespace Proiect.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ID,Name,Description,Price")] Food food)
+        public async Task<IActionResult> Create([Bind("Name,Description,Price")] Food food)
         {
-            if (ModelState.IsValid)
+            try
             {
-                _context.Add(food);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                if (ModelState.IsValid)
+                {
+                    _context.Add(food);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
             }
+            catch (DbUpdateException)
+            {
+                ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists ");
+            }
+
             return View(food);
         }
 
@@ -76,37 +126,35 @@ namespace Proiect.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,Name,Description,Price")] Food food)
+        public async Task<IActionResult> EditPost(int? id)
         {
-            if (id != food.ID)
+            if (id == null)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            var foodToUpdate = await _context.Foods.FirstOrDefaultAsync(s => s.ID == id);
+
+            if (await TryUpdateModelAsync<Food>(
+                foodToUpdate,
+                "",
+                s => s.Name, s => s.Description, s => s.Price))
             {
                 try
                 {
-                    _context.Update(food);
                     await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (DbUpdateException)
                 {
-                    if (!FoodExists(food.ID))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists");
                 }
-                return RedirectToAction(nameof(Index));
             }
-            return View(food);
+
+            return View(foodToUpdate);
         }
 
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete(int? id, bool? saveChangesError = false)
         {
             if (id == null)
             {
@@ -114,10 +162,17 @@ namespace Proiect.Controllers
             }
 
             var food = await _context.Foods
+                .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.ID == id);
+
             if (food == null)
             {
                 return NotFound();
+            }
+
+            if (saveChangesError.GetValueOrDefault())
+            {
+                ViewData["ErrorMessage"] = "Delete failed. Try again";
             }
 
             return View(food);
@@ -127,19 +182,24 @@ namespace Proiect.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var food = await _context.Foods.FindAsync(id);
-            if (food != null)
+            var food = await _context.Foods
+                .FirstOrDefaultAsync(m => m.ID == id);
+
+            if (food == null)
             {
-                _context.Foods.Remove(food);
+                return RedirectToAction(nameof(Index));
             }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool FoodExists(int id)
-        {
-            return _context.Foods.Any(e => e.ID == id);
+            try
+            {
+                _context.Foods.Remove(food);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateException)
+            {
+                return RedirectToAction(nameof(Delete), new { id = id, saveChangesError = true });
+            }
         }
     }
 }
