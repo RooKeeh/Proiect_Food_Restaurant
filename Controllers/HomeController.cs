@@ -1,16 +1,18 @@
 using Microsoft.AspNetCore.Mvc;
 using Proiect.Models;
 using System.Diagnostics;
+using Microsoft.EntityFrameworkCore;
+using Proiect.Data;
+using Proiect.Models.RestaurantViewModels;
 
 namespace Proiect.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
-
-        public HomeController(ILogger<HomeController> logger)
+        private readonly RestaurantContext _context;
+        public HomeController(RestaurantContext context)
         {
-            _logger = logger;
+            _context = context;
         }
 
         public IActionResult Index()
@@ -27,6 +29,19 @@ namespace Proiect.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        public async Task<ActionResult> Statistics()
+        {
+            IQueryable<OrderGroup> data =
+            from order in _context.Orders
+            group order by order.OrderDate into dateGroup
+            select new OrderGroup()
+            {
+                OrderDate = dateGroup.Key,
+                FoodCount = dateGroup.Count()
+            };
+            return View(await data.AsNoTracking().ToListAsync());
         }
     }
 }

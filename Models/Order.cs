@@ -2,9 +2,11 @@
 {
     public class Order
     {
-        public int ID { get; set; }
+        public int OrderID { get; set; }
+        public int ClientID { get; set; }
+        public int FoodID { get; set; }
         public DateTime OrderDate { get; set; }
-        public string Client { get; set; }
+        public Client? Client { get; set; }
         public ICollection<Food> Foods { get; set; }
     }
 }

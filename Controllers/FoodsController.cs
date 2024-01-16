@@ -103,15 +103,15 @@ namespace Proiect.Controllers
             }
             catch (DbUpdateException)
             {
-                ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists ");
+                ModelState.AddModelError("", "Unable to save changes.");
             }
 
             return View(food);
         }
 
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> EditAsync(int? id)
         {
-            if (id == null)
+            if (id == null || _context.Foods == null)
             {
                 return NotFound();
             }
@@ -124,7 +124,7 @@ namespace Proiect.Controllers
             return View(food);
         }
 
-        [HttpPost]
+        [HttpPost, ActionName("Edit")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditPost(int? id)
         {
@@ -135,10 +135,7 @@ namespace Proiect.Controllers
 
             var foodToUpdate = await _context.Foods.FirstOrDefaultAsync(s => s.ID == id);
 
-            if (await TryUpdateModelAsync<Food>(
-                foodToUpdate,
-                "",
-                s => s.Name, s => s.Description, s => s.Price))
+            if (await TryUpdateModelAsync<Food>(foodToUpdate, "", s => s.Name, s => s.Description, s => s.Price))
             {
                 try
                 {
@@ -147,7 +144,7 @@ namespace Proiect.Controllers
                 }
                 catch (DbUpdateException)
                 {
-                    ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists");
+                    ModelState.AddModelError("", "Unable to save changes");
                 }
             }
 

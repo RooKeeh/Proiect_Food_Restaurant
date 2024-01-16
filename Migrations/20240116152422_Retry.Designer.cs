@@ -12,8 +12,8 @@ using Proiect.Data;
 namespace Proiect.Migrations
 {
     [DbContext(typeof(RestaurantContext))]
-    [Migration("20240113194525_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20240116152422_Retry")]
+    partial class Retry
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -30,14 +30,32 @@ namespace Proiect.Migrations
                     b.Property<int>("FoodsID")
                         .HasColumnType("int");
 
-                    b.Property<int>("OrdersID")
+                    b.Property<int>("OrdersOrderID")
                         .HasColumnType("int");
 
-                    b.HasKey("FoodsID", "OrdersID");
+                    b.HasKey("FoodsID", "OrdersOrderID");
 
-                    b.HasIndex("OrdersID");
+                    b.HasIndex("OrdersOrderID");
 
                     b.ToTable("FoodOrder");
+                });
+
+            modelBuilder.Entity("Proiect.Models.Chef", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+
+                    b.Property<string>("ChefName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("Chef", (string)null);
                 });
 
             modelBuilder.Entity("Proiect.Models.Client", b =>
@@ -65,6 +83,21 @@ namespace Proiect.Migrations
                     b.ToTable("Client", (string)null);
                 });
 
+            modelBuilder.Entity("Proiect.Models.CreatedFoodItem", b =>
+                {
+                    b.Property<int>("FoodID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ChefID")
+                        .HasColumnType("int");
+
+                    b.HasKey("FoodID", "ChefID");
+
+                    b.HasIndex("ChefID");
+
+                    b.ToTable("CreatedFoodItem", (string)null);
+                });
+
             modelBuilder.Entity("Proiect.Models.Food", b =>
                 {
                     b.Property<int>("ID")
@@ -82,7 +115,7 @@ namespace Proiect.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(6, 2)");
 
                     b.HasKey("ID");
 
@@ -91,20 +124,24 @@ namespace Proiect.Migrations
 
             modelBuilder.Entity("Proiect.Models.Order", b =>
                 {
-                    b.Property<int>("ID")
+                    b.Property<int>("OrderID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderID"));
 
-                    b.Property<string>("Client")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("ClientID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FoodID")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("datetime2");
 
-                    b.HasKey("ID");
+                    b.HasKey("OrderID");
+
+                    b.HasIndex("ClientID");
 
                     b.ToTable("Order", (string)null);
                 });
@@ -119,9 +156,49 @@ namespace Proiect.Migrations
 
                     b.HasOne("Proiect.Models.Order", null)
                         .WithMany()
-                        .HasForeignKey("OrdersID")
+                        .HasForeignKey("OrdersOrderID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Proiect.Models.CreatedFoodItem", b =>
+                {
+                    b.HasOne("Proiect.Models.Chef", "Chef")
+                        .WithMany("CreatedFoodItems")
+                        .HasForeignKey("ChefID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Proiect.Models.Food", "food")
+                        .WithMany("CreatedFoodItems")
+                        .HasForeignKey("FoodID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Chef");
+
+                    b.Navigation("food");
+                });
+
+            modelBuilder.Entity("Proiect.Models.Order", b =>
+                {
+                    b.HasOne("Proiect.Models.Client", "Client")
+                        .WithMany()
+                        .HasForeignKey("ClientID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Client");
+                });
+
+            modelBuilder.Entity("Proiect.Models.Chef", b =>
+                {
+                    b.Navigation("CreatedFoodItems");
+                });
+
+            modelBuilder.Entity("Proiect.Models.Food", b =>
+                {
+                    b.Navigation("CreatedFoodItems");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Proiect.Models;
+using System.Security.Policy;
 
 namespace Proiect.Data
 {
@@ -25,6 +26,47 @@ namespace Proiect.Data
                     new Client { Name = "Jane Smith", Email = "jane.smith@example.com", Phone = "(555) 987-6543" }
                 );
 
+                var orders = new Order[]
+                {
+                    new Order{FoodID=1,ClientID=1,OrderDate=DateTime.Parse("2024-01-05")},
+                    new Order{FoodID=2,ClientID=2,OrderDate=DateTime.Parse("2023-09-07")},
+                    new Order{FoodID=3,ClientID=1,OrderDate=DateTime.Parse("2023-10-27")},
+                    new Order{FoodID=1,ClientID=1,OrderDate=DateTime.Parse("2023-05-30")},
+                    new Order{FoodID=2,ClientID=1,OrderDate=DateTime.Parse("2024-01-01")},
+                    new Order{FoodID=2,ClientID=2,OrderDate=DateTime.Parse("2023-12-12")},
+                };
+                foreach (Order e in orders)
+                {
+                    context.Orders.Add(e);
+                }
+                context.SaveChanges();
+
+                var chefs = new Models.Chef[]
+                {
+                    new Models.Chef{ChefName="Alex Smith"},
+                    new Models.Chef{ChefName="Jamie Moore"},
+                    new Models.Chef{ChefName="Chris Anderson"},
+                };
+                foreach (Models.Chef c in chefs)
+                {
+                    context.Chefs.Add(c);
+                }
+                context.SaveChanges();
+
+                var foods = context.Foods;
+                /*var createdFoodItems = new CreatedFoodItem[]
+                {
+                    new CreatedFoodItem {FoodID = foods.Single(c => c.Name == "Chicken Risotto" ).ID, ChefID = chefs.Single(i => i.ChefName == "Alex Smith").ID},
+                    new CreatedFoodItem {FoodID = foods.Single(c => c.Name == "Spaghetti Bolognese" ).ID, ChefID = chefs.Single(i => i.ChefName == "Chris Anderson").ID},
+                    new CreatedFoodItem {FoodID = foods.Single(c => c.Name == "Spaghetti Bolognese" ).ID, ChefID = chefs.Single(i => i.ChefName == "Jamie Moore").ID},
+                    new CreatedFoodItem {FoodID = foods.Single(c => c.Name == "Chicken Risotto" ).ID, ChefID = chefs.Single(i => i.ChefName == "Alex Smith").ID},
+                    new CreatedFoodItem {FoodID = foods.Single(c => c.Name == "Pizza Capricciosa" ).ID, ChefID = chefs.Single(i => i.ChefName == "Alex Smith").ID},
+                    new CreatedFoodItem {FoodID = foods.Single(c => c.Name == "Spaghetti Bolognese" ).ID, ChefID = chefs.Single(i => i.ChefName == "Chris Anderson").ID},
+                };
+                foreach (CreatedFoodItem cfi in createdFoodItems)
+                {
+                    context.CreatedFoodItems.Add(cfi);
+                }*/
                 context.SaveChanges();
             }
         }
