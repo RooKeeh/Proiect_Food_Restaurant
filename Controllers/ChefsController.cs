@@ -95,44 +95,97 @@ namespace Proiect.Controllers
                 return NotFound();
             }
 
-            var chef = await _context.Chefs.FindAsync(id);
+            var chef = await _context.Chefs.Include(i => i.CreatedFoodItems).ThenInclude(i => i.Food).AsNoTracking().FirstOrDefaultAsync(m => m.ID == id);
             if (chef == null)
             {
                 return NotFound();
             }
+            PopulateCreatedFoodData(chef);
             return View(chef);
+        }
+
+        private void PopulateCreatedFoodData(Chef chef)
+        {
+            var allFoods = _context.Foods;
+            var createdFoods = new HashSet<int>(chef.CreatedFoodItems.Select(c => c.FoodID));
+            var viewModel = new List<CreatedFoodData>();
+            foreach (var food in allFoods)
+            {
+                viewModel.Add(new CreatedFoodData
+                {
+                    FoodID = food.ID,
+                    Name = food.Name,
+                    IsCreated = createdFoods.Contains(food.ID)
+                });
+            }
+            ViewData["Foods"] = viewModel;
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,ChefName")] Chef chef)
+        public async Task<IActionResult> Edit(int? id, string[] selectedFoods)
         {
-            if (id != chef.ID)
+            if (id == null)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            var chefToUpdate = await _context.Chefs.Include(i => i.CreatedFoodItems).ThenInclude(i => i.Food).FirstOrDefaultAsync(m => m.ID == id);
+
+            if (await TryUpdateModelAsync<Chef>(chefToUpdate, "", i => i.ChefName))
             {
+                UpdatePublishedFoods(selectedFoods, chefToUpdate);
                 try
                 {
-                    _context.Update(chef);
                     await _context.SaveChangesAsync();
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (DbUpdateException)
                 {
-                    if (!ChefExists(chef.ID))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+
+                    ModelState.AddModelError("", "Unable to save changes.");
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(chef);
+
+            UpdatePublishedFoods(selectedFoods, chefToUpdate);
+
+            PopulateCreatedFoodData(chefToUpdate);
+
+            return View(chefToUpdate);
+        }
+        private void UpdatePublishedFoods(string[] selectedFoods, Chef chefToUpdate)
+        {
+            if (selectedFoods == null)
+            {
+                chefToUpdate.CreatedFoodItems = new List<CreatedFoodItem>();
+                return;
+            }
+            var selectedFoodsHS = new HashSet<string>(selectedFoods);
+            var createdFoods = new HashSet<int>
+            (chefToUpdate.CreatedFoodItems.Select(c => c.Food.ID));
+            foreach (var food in _context.Foods)
+            {
+                if (selectedFoodsHS.Contains(food.ID.ToString()))
+                {
+                    if (!createdFoods.Contains(food.ID))
+                    {
+                        chefToUpdate.CreatedFoodItems.Add(new CreatedFoodItem
+                        {
+                            ChefID =
+                       chefToUpdate.ID,
+                            FoodID = food.ID
+                        });
+                    }
+                }
+                else
+                {
+                    if (createdFoods.Contains(food.ID))
+                    {
+                        CreatedFoodItem foodToRemove = chefToUpdate.CreatedFoodItems.FirstOrDefault(i => i.FoodID == food.ID);
+                        _context.Remove(foodToRemove);
+                    }
+                }
+            }
         }
 
         public async Task<IActionResult> Delete(int? id)

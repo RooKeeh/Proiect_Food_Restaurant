@@ -8,8 +8,8 @@ namespace Proiect.Models
         [Required]
         [Display(Name = "Chef Name")]
         [StringLength(50)]
-        public string? ChefName { get; set; }
-        public ICollection<CreatedFoodItem> CreatedFoodItems { get; set; }
+        public string? ChefName { get; set; }   
+        public ICollection<CreatedFoodItem>? CreatedFoodItems { get; set; }
 
     }
 }

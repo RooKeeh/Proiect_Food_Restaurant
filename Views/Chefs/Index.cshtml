@@ -1,33 +1,38 @@
 ﻿@model Proiect.Models.RestaurantViewModels.ChefIndexData
 
 @{
-    ViewData["Title"] = "New Chef";
+    ViewData["Title"] = "Chef List";
 }
 
+<h1>Chef List</h1>
+
 <p>
-    <a asp-action="Create">Create New Chef</a>
+    <a asp-action="Create" class="btn btn-primary">Register New Chef</a>
 </p>
 <table class="table">
     <thead>
         <tr>
-            <th>
+            <th class="align-items-center">
                 @Html.DisplayNameFor(model => model.Chefs)
             </th>
-            <th></th>
+            <th />
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model.Chefs) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.ChefName)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.ID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.ID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.ID">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model.Chefs)
+        {
+            <tr>
+                <td class="align-items-center">
+                    @Html.DisplayFor(modelItem => item.ChefName)
+                </td>
+                <td class="d-flex justify-content-end align-items-center">
+                    <a asp-action="Edit" asp-route-id="@item.ID" class="btn btn-primary">Edit Chef Info</a>
+                    <span class="mx-1">|</span>
+                    <a asp-action="Details" asp-route-id="@item.ID" class="btn btn-primary">Chef Details</a>
+                    <span class="mx-1">|</span>
+                    <a asp-action="Delete" asp-route-id="@item.ID" class="btn btn-danger">Delete Chef</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>

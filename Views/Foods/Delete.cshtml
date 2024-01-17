@@ -1,7 +1,7 @@
 ﻿@model Proiect.Models.Food
 
 @{
-    ViewData["Title"] = "Delete Item";
+    ViewData["Title"] = "Delete Menu Item";
 }
 
 <h1>Delete Menu Item</h1>
@@ -28,10 +28,9 @@
             @Html.DisplayFor(model => model.Price)
         </dd>
     </dl>
-    
     <form asp-action="Delete">
         <input type="hidden" asp-for="ID" />
-        <input type="submit" value="Delete Item" class="btn btn-danger" /> |
+        <input type="submit" value="Delete Menu Item" class="btn btn-danger" /> |
         <a asp-action="Index">Back to Menu</a>
     </form>
 </div>

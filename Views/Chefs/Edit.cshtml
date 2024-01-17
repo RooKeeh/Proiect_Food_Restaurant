@@ -1,12 +1,11 @@
 ﻿@model Proiect.Models.Chef
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit Chef Info";
 }
 
-<h1>Edit</h1>
+<h1>Edit Chef Info</h1>
 
-<h4>Chef</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
@@ -19,14 +18,36 @@
                 <span asp-validation-for="ChefName" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+                 <div class="col-md-offset-2 col-md-10">
+                    <table>
+                         <br />
+                            <tr>
+                            @{
+                                int cnt = 0;
+                                List<Proiect.Models.RestaurantViewModels.CreatedFoodData> foods = ViewBag.Foods;
+                                foreach (var food in foods)
+                                {
+                                    if (cnt++ % 3 == 0)
+                                    {
+                                        @:</tr><tr>
+                                    }
+                                    @:<td>
+                                    <input type="checkbox" name="selectedFoods" value="@food.FoodID" @(Html.Raw(food.IsCreated ? 
+                                        "checked=\"checked\"" : "")) /> @: @food.Name
+                                        @:</td>
+                                }
+                                @:</tr>
+                            }
+                    </table>
+                 </div>
+            </div>
+            <br />
+            <div class="form-group">
+                <input type="submit" value="Save Chef" class="btn btn-primary" /> |
+                <a asp-action="Index">Back to Chef List</a>
             </div>
         </form>
     </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
 </div>
 
 @section Scripts {
