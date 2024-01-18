@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Policy;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,7 @@ using Proiect.Models.RestaurantViewModels;
 
 namespace Proiect.Controllers
 {
+    [Authorize(Policy = "OnlySales")]
     public class ChefsController : Controller
     {
         private readonly RestaurantContext _context;
