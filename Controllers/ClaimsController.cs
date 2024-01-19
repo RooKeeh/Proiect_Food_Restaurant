@@ -5,7 +5,6 @@ using System.Security.Claims;
 
 namespace Proiect.Controllers
 {
-    [Authorize]
     public class ClaimsController : Controller
     {
         private UserManager<IdentityUser> userManager;

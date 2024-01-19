@@ -36,6 +36,12 @@ namespace Proiect.Controllers
         public async Task<IActionResult> Update(string id)
         {
             IdentityRole role = await roleManager.FindByIdAsync(id);
+
+            if (role == null)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
             List<IdentityUser> members = new List<IdentityUser>();
             List<IdentityUser> nonMembers = new List<IdentityUser>();
             foreach (IdentityUser user in userManager.Users)

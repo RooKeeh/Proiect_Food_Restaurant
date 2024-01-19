@@ -13,7 +13,7 @@ using Proiect.Models.RestaurantViewModels;
 
 namespace Proiect.Controllers
 {
-    [Authorize(Policy = "OnlySales")]
+    /*[Authorize(Policy = "OnlySales")]*/
     public class ChefsController : Controller
     {
         private readonly RestaurantContext _context;

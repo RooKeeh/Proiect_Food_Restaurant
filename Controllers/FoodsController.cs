@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,7 @@ using static System.Reflection.Metadata.BlobBuilder;
 
 namespace Proiect.Controllers
 {
+    /*[Authorize(Roles = "Employee")]*/
     public class FoodsController : Controller
     {
         private readonly RestaurantContext _context;
@@ -20,6 +22,7 @@ namespace Proiect.Controllers
             _context = context;
         }
 
+        [AllowAnonymous]
         public async Task<IActionResult> Index(string sortOrder, string currentFilter, string searchString, int? pageNumber)
         {
             ViewData["CurrentSort"] = sortOrder;
@@ -63,6 +66,7 @@ namespace Proiect.Controllers
             return View(await PaginatedList<Food>.CreateAsync(foods.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
 
+        [AllowAnonymous]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)

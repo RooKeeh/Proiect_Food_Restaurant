@@ -35,6 +35,18 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
 builder.Services.AddSignalR();
 builder.Services.AddRazorPages();
 
+builder.Services.AddAuthorization(opts => {
+    opts.AddPolicy("SalesManager", policy => {
+        policy.RequireRole("Manager");
+        policy.RequireClaim("Department", "Sales");
+    });
+});
+builder.Services.ConfigureApplicationCookie(opts =>
+{
+    opts.AccessDeniedPath = "/Identity/Account/AccessDenied";
+
+});
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
